@@ -1,5 +1,11 @@
 #pragma once
 
+#include <math.h>
+
+char getLumCharacterFancyPants(int lum) {
+	char map[]{ '@', '%', '#', '*', '+', '=', '-', ':', '.', ' ' };
+	return map[int(ceil(lum / (225 / (sizeof(map) - 1))))];
+}
 
 char getLumCharacter(int lum) {
 	char character;
@@ -28,3 +34,4 @@ char getLumCharacter(int lum) {
 
 	return character;
 }
+

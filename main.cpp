@@ -21,9 +21,9 @@ int calcLum(const unsigned char* pixels) {
 void imageToTextNaive(const vector<unsigned char>& image, unsigned width, char* output, int size, int pixelSize) {
 	// Getting a single Luminocity out of RGBA set. Using standard formula (0.2126*R + 0.7152*G + 0.0722*B)
 	// Mapping luminecense
-	output[0] = getLumCharacter(calcLum(&image[0]));
+	output[0] = getLumCharacterFancyPants(calcLum(&image[0]));
 	for (int i = pixelSize; i < image.size(); i += pixelSize) {
-		output[i / pixelSize] = getLumCharacter(calcLum(&image[i]));
+		output[i / pixelSize] = getLumCharacterFancyPants(calcLum(&image[i]));
 	}
 
 	for (int i = width - 1; i < size; i += width) {
@@ -43,7 +43,7 @@ int imageToTextSPMD(const vector<unsigned char>& image, unsigned width, char* ou
 		if (ct == 0) nt = total;
 
 		for (int i = pixelSize * ct; i < image.size(); i += total * pixelSize) {
-			output[i / pixelSize] = getLumCharacter(calcLum(&image[i]));
+			output[i / pixelSize] = getLumCharacterFancyPants(calcLum(&image[i]));
 		}
 	}
 
@@ -56,11 +56,11 @@ int imageToTextSPMD(const vector<unsigned char>& image, unsigned width, char* ou
 void imageToTextWorkSharing(const vector<unsigned char>& image, unsigned width, char* output, int size, int pixelSize) {
 	// Getting a single Luminocity out of RGBA set. Using standard formula (0.2126*R + 0.7152*G + 0.0722*B)
 	// Mapping luminecense
-	output[0] = getLumCharacter(calcLum(&image[0]));
+	output[0] = getLumCharacterFancyPants(calcLum(&image[0]));
 
 #pragma omp parallel for
 	for (int i = pixelSize; i < image.size(); i += pixelSize) {
-		output[i / pixelSize] = getLumCharacter(calcLum(&image[i]));
+		output[i / pixelSize] = getLumCharacterFancyPants(calcLum(&image[i]));
 	}
 
 	for (int i = width - 1; i < size; i += width) {
@@ -124,16 +124,16 @@ int main(int argc, const char * argv[]) {
 	reportTime("Work sharing with vectorization: ", te - ts);
 
 	// Outputting to a file
-	//std::ofstream myfile("output.txt");
-	//if (!myfile.is_open()) {
-	//	std::cout << "DID NOT WORK\n";
-	//	return 1;
-	//}
-	//else {
-	//	myfile.write(output, sizeOfoutput);
-	//	myfile.close();
-	//	std::cout << "Done." << std::endl;
-	//}
+	std::ofstream myfile("output.txt");
+	if (!myfile.is_open()) {
+		std::cout << "DID NOT WORK\n";
+		return 1;
+	}
+	else {
+		myfile.write(output, sizeOfoutput);
+		myfile.close();
+		std::cout << "Done." << std::endl;
+	}
 	delete[] output;
 	return 0;
 }
