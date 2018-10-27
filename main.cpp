@@ -106,14 +106,12 @@ vector<char> imageToTextScaledNaive(const vector<unsigned char>& image, unsigned
 	vector<char> out;
 
 	scaleX = 1;
-	scaleY = 1;
+	scaleY = 5;
 
 	int singleRow = imageWidth * pixelSize;
-	int constructs = 0;
-	int currentRow = 0;
 	// offset by the number of rows * scaleY (the number of shranked columns) and look back to calculate average luminosity.
 	// the step size the same as the offset.
-	for (currentRow = singleRow * scaleY; currentRow <= image.size(); currentRow += singleRow * scaleY) {
+	for (int currentRow = singleRow * scaleY; currentRow <= image.size(); currentRow += singleRow * scaleY) {
 		// iterate over the entire row vertically collecting row and column data
 		for (int partialWidth = 0; partialWidth < imageWidth; partialWidth += scaleX) {
 			int sum = 0;
@@ -122,20 +120,21 @@ vector<char> imageToTextScaledNaive(const vector<unsigned char>& image, unsigned
 				// traverse column from top to bottom
 				for (int y = 0; y < scaleY; y++) {
 					int left = (currentRow - singleRow * scaleY);
-					int right = partialWidth + x + y * singleRow;
+					int right = (partialWidth + x + y * imageWidth) * pixelSize;
 					int result = left + right;
 					sum += calcLum(&image[result]);
-					constructs++;
 				}
 			}
 			// average out the sum and get the corresponding charater
-			//output[(currentRow - imageWidth * pixelSize * scaleY) + partialWidth] = ;
-			out.push_back(getLumCharacter(sum / (scaleX * scaleY)));
+			output[(currentRow - imageWidth * pixelSize * scaleY) + partialWidth] = getLumCharacter(sum / (scaleX * scaleY));
+			//out.push_back(getLumCharacter(sum / (scaleX * scaleY)));
 		}
 		// we have processed a single row, append the new line
 		out.push_back('\n');
 	}
-	cout << constructs << " " << currentRow << endl;
+	for (int i = imageWidth - 1; i < outputSize; i += imageWidth) {
+		output[i] = '\n';
+	}
 	return out;
 }
 
@@ -170,10 +169,10 @@ int main(int argc, const char * argv[]) {
 	char * output = new char[sizeOfoutput];
 	int pixelSize = 4;
 
-	ts = steady_clock::now();
-	imageToTextNaive(image, width, output, sizeOfoutput, pixelSize);
-	te = steady_clock::now();
-	reportTime("Serial: ", te - ts);
+	//ts = steady_clock::now();
+	//imageToTextNaive(image, width, output, sizeOfoutput, pixelSize);
+	//te = steady_clock::now();
+	//reportTime("Serial: ", te - ts);
 
 	ts = steady_clock::now();
 	auto rc = imageToTextScaledNaive(image, width, height, 1111, 1111, output, sizeOfoutput, pixelSize);
@@ -197,7 +196,7 @@ int main(int argc, const char * argv[]) {
 		return 1;
 	}
 	else {
-		myfile.write(&rc[0], rc.size());
+		myfile.write(output, sizeOfoutput);
 		myfile.close();
 		std::cout << "Done." << std::endl;
 	}
