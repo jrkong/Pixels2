@@ -2,9 +2,12 @@
 
 #include <math.h>
 
+char getLumCharacter(int lum);
+
+
 char getLumCharacterFancyPants(int lum) {
 	char map[]{ '@', '%', '#', '*', '+', '=', '-', ':', '.', ' ' };
-	return map[int(ceil(lum / (225 / (sizeof(map) - 1))))];
+	return map[int(floor(lum / (225 / (sizeof(map) - 1))))];
 }
 
 char getLumCharacter(int lum) {

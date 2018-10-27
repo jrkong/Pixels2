@@ -9,7 +9,7 @@
 #include "Pixel2\util.h"
 #include "Pixel2\advisor-annotate.h"
 
-const char* filename = "test1.png";
+const char* filename = "flamingo.png";
 
 using namespace std::chrono;
 using namespace std;
@@ -18,17 +18,35 @@ int calcLum(const unsigned char* pixels) {
 	return (0.2126 * (int)pixels[0]) + (0.7152 * (int)pixels[1]) + (0.0722 * (int)pixels[2]);
 }
 
+// scales[0] = width, scales[1] = height
+void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned desiredHeight, unsigned desiredWidth, unsigned* scaleX, unsigned* scaleY) {
+	*scaleX = imageWidth / desiredWidth;
+	*scaleY = imageHeight / desiredHeight;
+
+	// calculate ration of height to width to make sure that scales would be for the appropriate orientation
+	if (!(imageHeight / imageWidth > 0 && desiredHeight / desiredWidth > 0)) {
+		unsigned tmp = *scaleY;
+		*scaleY = *scaleX;
+		*scaleX = tmp;
+	}
+}
+
+
 void imageToTextNaive(const vector<unsigned char>& image, unsigned width, char* output, int size, int pixelSize) {
 	// Getting a single Luminocity out of RGBA set. Using standard formula (0.2126*R + 0.7152*G + 0.0722*B)
 	// Mapping luminecense
+	int c = 0;
 	output[0] = getLumCharacterFancyPants(calcLum(&image[0]));
 	for (int i = pixelSize; i < image.size(); i += pixelSize) {
+		c++;
 		output[i / pixelSize] = getLumCharacterFancyPants(calcLum(&image[i]));
 	}
 
 	for (int i = width - 1; i < size; i += width) {
 		output[i] = '\n';
 	}
+
+	cout << c << endl;
 }
 
 
@@ -76,6 +94,51 @@ void reportTime(const char* msg, steady_clock::duration span) {
 		ms.count() << " milliseconds" << std::endl;
 }
 
+
+
+vector<char> imageToTextScaledNaive(const vector<unsigned char>& image, unsigned imageWidth, unsigned imageHeight, unsigned desiredHeight, unsigned desiredWidth, char* output, int outputSize, int pixelSize) {
+	// Getting a single Luminocity out of RGBA set. Using standard formula (0.2126*R + 0.7152*G + 0.0722*B)
+
+	unsigned scaleX, scaleY;
+
+	//getScalingFactors(imageWidth, imageHeight, desiredHeight, desiredWidth, &scaleX, &scaleY);
+
+	vector<char> out;
+
+	scaleX = 1;
+	scaleY = 1;
+
+	int singleRow = imageWidth * pixelSize;
+	int constructs = 0;
+	int currentRow = 0;
+	// offset by the number of rows * scaleY (the number of shranked columns) and look back to calculate average luminosity.
+	// the step size the same as the offset.
+	for (currentRow = singleRow * scaleY; currentRow <= image.size(); currentRow += singleRow * scaleY) {
+		// iterate over the entire row vertically collecting row and column data
+		for (int partialWidth = 0; partialWidth < imageWidth; partialWidth += scaleX) {
+			int sum = 0;
+			// traverse the row from left to right
+			for (int x = 0; x < scaleX; x++) {
+				// traverse column from top to bottom
+				for (int y = 0; y < scaleY; y++) {
+					int left = (currentRow - singleRow * scaleY);
+					int right = partialWidth + x + y * singleRow;
+					int result = left + right;
+					sum += calcLum(&image[result]);
+					constructs++;
+				}
+			}
+			// average out the sum and get the corresponding charater
+			//output[(currentRow - imageWidth * pixelSize * scaleY) + partialWidth] = ;
+			out.push_back(getLumCharacter(sum / (scaleX * scaleY)));
+		}
+		// we have processed a single row, append the new line
+		out.push_back('\n');
+	}
+	cout << constructs << " " << currentRow << endl;
+	return out;
+}
+
 int main(int argc, const char * argv[]) {
 	// Welcome message
 	std::cout << "Pixels 2!\n";
@@ -112,25 +175,29 @@ int main(int argc, const char * argv[]) {
 	te = steady_clock::now();
 	reportTime("Serial: ", te - ts);
 
-
 	ts = steady_clock::now();
-	int numOfThreads = imageToTextSPMD(image, width, output, sizeOfoutput, pixelSize);
+	auto rc = imageToTextScaledNaive(image, width, height, 1111, 1111, output, sizeOfoutput, pixelSize);
 	te = steady_clock::now();
-	reportTime("SPMD: ", te - ts);
+	reportTime("Serial Scaled: ", te - ts);
 
-	ts = steady_clock::now();
-	imageToTextWorkSharing(image, width, output, sizeOfoutput, pixelSize);
-	te = steady_clock::now();
-	reportTime("Work sharing with vectorization: ", te - ts);
+	//ts = steady_clock::now();
+	//int numOfThreads = imageToTextSPMD(image, width, output, sizeOfoutput, pixelSize);
+	//te = steady_clock::now();
+	//reportTime("SPMD: ", te - ts);
+
+	//ts = steady_clock::now();
+	//imageToTextWorkSharing(image, width, output, sizeOfoutput, pixelSize);
+	//te = steady_clock::now();
+	//reportTime("Work sharing with vectorization: ", te - ts);
 
 	// Outputting to a file
-	std::ofstream myfile("output.txt");
+	std::ofstream myfile("output1.txt");
 	if (!myfile.is_open()) {
 		std::cout << "DID NOT WORK\n";
 		return 1;
 	}
 	else {
-		myfile.write(output, sizeOfoutput);
+		myfile.write(&rc[0], rc.size());
 		myfile.close();
 		std::cout << "Done." << std::endl;
 	}
