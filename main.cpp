@@ -1,6 +1,5 @@
 // GPU621 Project
 // Alex Kong, Dmytro Sych, Yuriy Kartuzov
-
 #include <iostream>
 #include <fstream>
 #include <math.h>
@@ -10,7 +9,7 @@
 #include <iterator>
 
 // Prototypes
-std::vector<int> MakeBW(const std::vector<unsigned char> image);
+std::vector<int> MakeBW(const std::vector<unsigned char> image, int width, int height, int newWidth, int newHeight);
 std::vector<int> CropImage(const std::vector<int> bwImage,int w, int h, int nW, int nH);
 std::vector<int> ImageReduce(const std::vector<int> image, int newImageWidth, int newImageHeight, int numOfElem);
 std::vector<char> Map(const std::vector<int> input);
@@ -37,9 +36,11 @@ int main(int argc, const char * argv[]) {
         return 0;
     }
     
-    
+	int newWidth = (4 * (int)(width / 4));
+	int newHeight = (7 * (int)(height / 7));
+	int newNumElem = (newWidth / 4) * (newHeight / 7);
     // 2. Getting Black and White Image
-    std::vector<int> bwImage = MakeBW(image);
+    std::vector<int> croppedImage = MakeBW(image, width, height, newWidth, newHeight);
     
     
     //TODO: add dynamic ratio scaling
@@ -47,10 +48,8 @@ int main(int argc, const char * argv[]) {
 #define Yratio 7
     
     // 3. Cropping Image
-    int newWidth = (4 * (int)(width / 4));
-    int newHeight = (7 * (int)(height / 7));
-    int newNumElem = (newWidth / 4) * (newHeight / 7);
-    std::vector<int> croppedImage = CropImage(bwImage, width, height, newWidth, newHeight);
+    
+    //std::vector<int> croppedImage = CropImage(bwImage, width, height, newWidth, newHeight);
     
     
     // 4. Reducing an image to multiple of 4:7
@@ -67,7 +66,7 @@ int main(int argc, const char * argv[]) {
     // Reporting
     printf(" INPUT file: %s.png\n OUTPUT file: %s.txt\n\n", filename, filename);
     printf(" ORIGINAL file width: %d, height %d, pixels: %d\n", width, height, (int)image.size() / 4);
-    printf(" BLACK & WHITE file width: %d, height %d, pixels: %d\n", width, height, (int)bwImage.size() );
+    //printf(" BLACK & WHITE file width: %d, height %d, pixels: %d\n", width, height, (int)bwImage.size() );
     printf(" CROPPED file width: %d, height %d, pixels: %d\n", newWidth, newHeight, (int)croppedImage.size() );
     printf(" REDUCED file width: %d, height %d, pixels: %d\n", newWidth / 4, newHeight / 7, (int)reducedImage.size() );
     printf(" MAPPED to ASCII vector<char> size is %d\n", (int)output.size() );
@@ -78,13 +77,19 @@ int main(int argc, const char * argv[]) {
 
 
 // Getting a single Luminocity out of RGBA set. Using standard formula (0.2126*R + 0.7152*G + 0.0722*B)
-std::vector<int> MakeBW(std::vector<unsigned char> image){
+std::vector<int> MakeBW(std::vector<unsigned char> image, int width, int height, int newWidth, int newHeight){
     std::vector<int> bwImage;
+	int diff = width - newWidth;
     
-    for(int i=0; i<image.size(); i+=4){
-        bwImage.push_back(
-                          (int)(0.2126 * (int)image.at(i)) + (0.7152 * (int)image.at(i+1)) + (0.0722 * (int)image.at(i+2))
-                          );
+	int iter = 0;
+    for(int i=0; i<newHeight; i++){
+		for (int j = 0; j < newWidth; j++) {
+			bwImage.push_back(
+				(int)(0.2126 * (int)image.at(iter)) + (0.7152 * (int)image.at(iter + 1)) + (0.0722 * (int)image.at(iter + 2))
+			);
+			iter += 4;
+		}
+		iter += diff;
     }
     return bwImage;
 }
