@@ -9,7 +9,7 @@
 #include "Pixel2\util.h"
 #include "Pixel2\advisor-annotate.h"
 
-const char* filename = "test2.png";
+const char* filename = "tiger.png";
 
 using namespace std::chrono;
 using namespace std;
@@ -95,16 +95,13 @@ void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned desir
 		*scaleY = ceil(imageHeight / (float)desiredHeight);
 	}
 }
-double roundNum(double d)
-{
-	return floor(d + 0.5);
-}
 
 // image has to be 'image size + 1' or the last row won't be processed
 void imageToTextScaledNaive(const vector<unsigned char>& image, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, char* output, int size, int pixelSize) {
 	int singleRow = imageWidth * pixelSize;
 	// offset by the number of rows * scaleY (the number of shranked columns) and look back to calculate average luminosity.
 	// the step size the same as the offset.
+#pragma omp parallel for
 	for (int currentRow = singleRow * scaleY; currentRow < image.size(); currentRow += singleRow * scaleY) {
 		// iterate over the entire row vertically collecting row and column data
 		for (int partialWidth = 0; partialWidth < imageWidth; partialWidth += scaleX) {
@@ -157,8 +154,10 @@ int main(int argc, const char * argv[]) {
 	// Getting a single Luminocity out of RGBA set. Using standard formula (0.2126*R + 0.7152*G + 0.0722*B)
 	steady_clock::time_point ts, te;
 	unsigned int scaleX, scaleY;
-	int desiredWidth = 300, desiredHeight = 400;
+	int desiredWidth = 800, desiredHeight = 400;
 	getScalingFactors(width, height, desiredHeight, desiredWidth, &scaleX, &scaleY);
+
+	//scaleX = scaleY = 1;
 
 	// allocate resulting array of size image
 	int sizeOfoutput = (width / scaleX) * (height / scaleY);
@@ -166,18 +165,17 @@ int main(int argc, const char * argv[]) {
 	char * out = new char[image.size() / 4];
 	int pixelSize = 4;
 
-	ts = steady_clock::now();
-	imageToTextNaive(image, width, out, sizeOfoutput, pixelSize);
-	te = steady_clock::now();
-	reportTime("Serial: ", te - ts);
+	//ts = steady_clock::now();
+	//imageToTextNaive(image, width, out, sizeOfoutput, pixelSize);
+	//te = steady_clock::now();
+	//reportTime("Serial: ", te - ts);
+
 
 	image.push_back('\0');
-
 	ts = steady_clock::now();
 	imageToTextScaledNaive(image, width, scaleX, scaleY, output, sizeOfoutput, pixelSize);
 	te = steady_clock::now();
 	reportTime("Serial Scaled: ", te - ts);
-
 	image.pop_back();
 
 	//ts = steady_clock::now();
