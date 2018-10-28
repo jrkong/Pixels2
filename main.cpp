@@ -100,11 +100,9 @@ double roundNum(double d)
 	return floor(d + 0.5);
 }
 
-
-void imageToTextScaledNaive(vector<unsigned char>& image, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, char* output, int size, int pixelSize) {
+// image has to be 'image size + 1' or the last row won't be processed
+void imageToTextScaledNaive(const vector<unsigned char>& image, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, char* output, int size, int pixelSize) {
 	int singleRow = imageWidth * pixelSize;
-	// append additional char, so that the last row is properly processed
-	image.push_back('\0');
 	// offset by the number of rows * scaleY (the number of shranked columns) and look back to calculate average luminosity.
 	// the step size the same as the offset.
 	for (int currentRow = singleRow * scaleY; currentRow < image.size(); currentRow += singleRow * scaleY) {
@@ -116,7 +114,7 @@ void imageToTextScaledNaive(vector<unsigned char>& image, unsigned imageWidth, u
 				// traverse column from top to bottom
 				for (int y = 0; y < scaleY; y++) {
 					// get the starting point based on the step
-					int base = (currentRow - singleRow * scaleY);
+					int base = currentRow - singleRow * scaleY;
 					// calculate coordinates of the pixel
 					int coordinates = (partialWidth + x + y * imageWidth) * pixelSize;
 					sum += calcLum(&image[base + coordinates]);
@@ -127,12 +125,9 @@ void imageToTextScaledNaive(vector<unsigned char>& image, unsigned imageWidth, u
 			output[index] = getLumCharacter(sum / (scaleX * scaleY));
 		}
 	}
-	// revert back to the original pixel vector
-	image.pop_back();
 	for (int i = (imageWidth / scaleX) - 1; i < size; i += imageWidth / scaleX) {
 		output[i] = '\n';
 	}
-
 }
 
 int main(int argc, const char * argv[]) {
@@ -168,18 +163,22 @@ int main(int argc, const char * argv[]) {
 	// allocate resulting array of size image
 	int sizeOfoutput = (width / scaleX) * (height / scaleY);
 	char * output = new char[sizeOfoutput];
+	char * out = new char[image.size() / 4];
 	int pixelSize = 4;
 
-	//ts = steady_clock::now();
-	//imageToTextNaive(image, width, output, sizeOfoutput, pixelSize);
-	//te = steady_clock::now();
-	//reportTime("Serial: ", te - ts);
+	ts = steady_clock::now();
+	imageToTextNaive(image, width, out, sizeOfoutput, pixelSize);
+	te = steady_clock::now();
+	reportTime("Serial: ", te - ts);
 
+	image.push_back('\0');
 
 	ts = steady_clock::now();
 	imageToTextScaledNaive(image, width, scaleX, scaleY, output, sizeOfoutput, pixelSize);
 	te = steady_clock::now();
 	reportTime("Serial Scaled: ", te - ts);
+
+	image.pop_back();
 
 	//ts = steady_clock::now();
 	//int numOfThreads = imageToTextSPMD(image, width, output, sizeOfoutput, pixelSize);
@@ -203,5 +202,6 @@ int main(int argc, const char * argv[]) {
 		std::cout << "Done." << std::endl;
 	}
 	delete[] output;
+	delete[] out;
 	return 0;
 }
