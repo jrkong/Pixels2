@@ -9,7 +9,7 @@
 #include "Pixel2\util.h"
 #include "Pixel2\advisor-annotate.h"
 
-const char* filename = "flamingo.png";
+const char* filename = "tiger.png";
 
 using namespace std::chrono;
 using namespace std;
@@ -18,18 +18,6 @@ int calcLum(const unsigned char* pixels) {
 	return (0.2126 * (int)pixels[0]) + (0.7152 * (int)pixels[1]) + (0.0722 * (int)pixels[2]);
 }
 
-// scales[0] = width, scales[1] = height
-void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned desiredHeight, unsigned desiredWidth, unsigned* scaleX, unsigned* scaleY) {
-	*scaleX = imageWidth / desiredWidth;
-	*scaleY = imageHeight / desiredHeight;
-
-	// calculate ration of height to width to make sure that scales would be for the appropriate orientation
-	if (!(imageHeight / imageWidth > 0 && desiredHeight / desiredWidth > 0)) {
-		unsigned tmp = *scaleY;
-		*scaleY = *scaleX;
-		*scaleX = tmp;
-	}
-}
 
 
 void imageToTextNaive(const vector<unsigned char>& image, unsigned width, char* output, int size, int pixelSize) {
@@ -94,24 +82,31 @@ void reportTime(const char* msg, steady_clock::duration span) {
 		ms.count() << " milliseconds" << std::endl;
 }
 
+// scales[0] = width, scales[1] = height
+void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned desiredHeight, unsigned desiredWidth, unsigned* scaleX, unsigned* scaleY) {
+
+	if (imageWidth < desiredWidth) {
+		*scaleX = 1;
+		*scaleY = 1;
+	}
+	else {
+		desiredHeight = (imageWidth / imageHeight) * desiredWidth;
+		*scaleX = ceil(imageWidth / (float)desiredWidth);
+		*scaleY = ceil(imageHeight / (float)desiredHeight);
+	}
+}
+double roundNum(double d)
+{
+	return floor(d + 0.5);
+}
 
 
-vector<char> imageToTextScaledNaive(const vector<unsigned char>& image, unsigned imageWidth, unsigned imageHeight, unsigned desiredHeight, unsigned desiredWidth, char* output, int outputSize, int pixelSize) {
-	// Getting a single Luminocity out of RGBA set. Using standard formula (0.2126*R + 0.7152*G + 0.0722*B)
-
-	unsigned scaleX, scaleY;
-
-	//getScalingFactors(imageWidth, imageHeight, desiredHeight, desiredWidth, &scaleX, &scaleY);
-
-	vector<char> out;
-
-	scaleX = 1;
-	scaleY = 5;
-
+void imageToTextScaledNaive(const vector<unsigned char>& image, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, char* output, int size, int pixelSize) {
 	int singleRow = imageWidth * pixelSize;
 	// offset by the number of rows * scaleY (the number of shranked columns) and look back to calculate average luminosity.
 	// the step size the same as the offset.
-	for (int currentRow = singleRow * scaleY; currentRow <= image.size(); currentRow += singleRow * scaleY) {
+	// TODO: fix last row iteration
+	for (int currentRow = singleRow * scaleY; currentRow < image.size(); currentRow += singleRow * scaleY) {
 		// iterate over the entire row vertically collecting row and column data
 		for (int partialWidth = 0; partialWidth < imageWidth; partialWidth += scaleX) {
 			int sum = 0;
@@ -119,23 +114,22 @@ vector<char> imageToTextScaledNaive(const vector<unsigned char>& image, unsigned
 			for (int x = 0; x < scaleX; x++) {
 				// traverse column from top to bottom
 				for (int y = 0; y < scaleY; y++) {
-					int left = (currentRow - singleRow * scaleY);
-					int right = (partialWidth + x + y * imageWidth) * pixelSize;
-					int result = left + right;
-					sum += calcLum(&image[result]);
+					// get the starting point based on the step
+					int base = (currentRow - singleRow * scaleY);
+					// calculate coordinates of the pixel
+					int coordinates = (partialWidth + x + y * imageWidth) * pixelSize;
+					sum += calcLum(&image[base + coordinates]);
 				}
 			}
 			// average out the sum and get the corresponding charater
-			output[(currentRow - imageWidth * pixelSize * scaleY) + partialWidth] = getLumCharacter(sum / (scaleX * scaleY));
-			//out.push_back(getLumCharacter(sum / (scaleX * scaleY)));
+			int index = (currentRow / (singleRow * scaleY) - 1) * (imageWidth / (scaleX)) + partialWidth / scaleX;
+			output[index] = getLumCharacter(sum / (scaleX * scaleY));
 		}
-		// we have processed a single row, append the new line
-		out.push_back('\n');
 	}
-	for (int i = imageWidth - 1; i < outputSize; i += imageWidth) {
+	for (int i = (imageWidth / scaleX) - 1; i < size; i += imageWidth / scaleX) {
 		output[i] = '\n';
 	}
-	return out;
+
 }
 
 int main(int argc, const char * argv[]) {
@@ -164,8 +158,12 @@ int main(int argc, const char * argv[]) {
 
 	// Getting a single Luminocity out of RGBA set. Using standard formula (0.2126*R + 0.7152*G + 0.0722*B)
 	steady_clock::time_point ts, te;
+	unsigned int scaleX, scaleY;
+	int desiredWidth = 300, desiredHeight = 400;
+	getScalingFactors(width, height, desiredHeight, desiredWidth, &scaleX, &scaleY);
+
 	// allocate resulting array of size image
-	int sizeOfoutput = image.size() / 4;
+	int sizeOfoutput = (width / scaleX) * (height / scaleY);
 	char * output = new char[sizeOfoutput];
 	int pixelSize = 4;
 
@@ -174,8 +172,9 @@ int main(int argc, const char * argv[]) {
 	//te = steady_clock::now();
 	//reportTime("Serial: ", te - ts);
 
+
 	ts = steady_clock::now();
-	auto rc = imageToTextScaledNaive(image, width, height, 1111, 1111, output, sizeOfoutput, pixelSize);
+	imageToTextScaledNaive(image, width, scaleX, scaleY, output, sizeOfoutput, pixelSize);
 	te = steady_clock::now();
 	reportTime("Serial Scaled: ", te - ts);
 
@@ -190,7 +189,7 @@ int main(int argc, const char * argv[]) {
 	//reportTime("Work sharing with vectorization: ", te - ts);
 
 	// Outputting to a file
-	std::ofstream myfile("output1.txt");
+	std::ofstream myfile("output.txt");
 	if (!myfile.is_open()) {
 		std::cout << "DID NOT WORK\n";
 		return 1;
