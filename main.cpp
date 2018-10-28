@@ -9,7 +9,7 @@
 #include "Pixel2\util.h"
 #include "Pixel2\advisor-annotate.h"
 
-const char* filename = "tiger.png";
+const char* filename = "test2.png";
 
 using namespace std::chrono;
 using namespace std;
@@ -90,7 +90,7 @@ void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned desir
 		*scaleY = 1;
 	}
 	else {
-		desiredHeight = (imageWidth / imageHeight) * desiredWidth;
+		desiredHeight = (imageWidth / (float)imageHeight) * desiredWidth;
 		*scaleX = ceil(imageWidth / (float)desiredWidth);
 		*scaleY = ceil(imageHeight / (float)desiredHeight);
 	}
@@ -101,11 +101,12 @@ double roundNum(double d)
 }
 
 
-void imageToTextScaledNaive(const vector<unsigned char>& image, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, char* output, int size, int pixelSize) {
+void imageToTextScaledNaive(vector<unsigned char>& image, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, char* output, int size, int pixelSize) {
 	int singleRow = imageWidth * pixelSize;
+	// append additional char, so that the last row is properly processed
+	image.push_back('\0');
 	// offset by the number of rows * scaleY (the number of shranked columns) and look back to calculate average luminosity.
 	// the step size the same as the offset.
-	// TODO: fix last row iteration
 	for (int currentRow = singleRow * scaleY; currentRow < image.size(); currentRow += singleRow * scaleY) {
 		// iterate over the entire row vertically collecting row and column data
 		for (int partialWidth = 0; partialWidth < imageWidth; partialWidth += scaleX) {
@@ -126,6 +127,8 @@ void imageToTextScaledNaive(const vector<unsigned char>& image, unsigned imageWi
 			output[index] = getLumCharacter(sum / (scaleX * scaleY));
 		}
 	}
+	// revert back to the original pixel vector
+	image.pop_back();
 	for (int i = (imageWidth / scaleX) - 1; i < size; i += imageWidth / scaleX) {
 		output[i] = '\n';
 	}
