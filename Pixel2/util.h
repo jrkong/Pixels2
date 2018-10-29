@@ -1,19 +1,20 @@
 #pragma once
-
+#include <string>
 #include <math.h>
 
 char getLumCharacter(int lum);
 
-
-char getLumCharacterFancyPants(int lum) {
-	char map[]{ '@', '%', '#', '*', '+', '=', '-', ':', '.', ' ' };
+char getLumCharacterFancyPants(int lum)
+{
+	char map[]{'@', '%', '#', '*', '+', '=', '-', ':', '.', ' '};
 	return map[int(floor(lum / (225 / (sizeof(map) - 1))))];
 }
 
-char getLumCharacter(int lum) {
+char getLumCharacter(int lum)
+{
 	char character;
 	// $@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,"^`'.  70 char set
-	char map[]{ '@', '%', '#', '*', '+', '=', '-', ':', '.', ' ' };
+	char map[]{'@', '%', '#', '*', '+', '=', '-', ':', '.', ' '};
 	if (lum < 25)
 		character = map[0];
 	else if (lum >= 25 && lum < 50)
@@ -38,3 +39,4 @@ char getLumCharacter(int lum) {
 	return character;
 }
 
+bool getRGB(std::string filename, std::string outfile);
