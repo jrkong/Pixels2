@@ -4,6 +4,7 @@
 #include <string>
 
 #include "loadpng.h"
+#include "util.h"
 
 using namespace std;
 
@@ -47,15 +48,8 @@ int calcLum(const unsigned char *pixels)
     return (0.2126 * (int)pixels[0]) + (0.7152 * (int)pixels[1]) + (0.0722 * (int)pixels[2]);
 }
 
-vector<unsigned char> getRGB(string filename)
+void getRGB(string filename, vector<unsigned char> &image, unsigned &width, unsigned &height)
 {
-    // Filename
-    cout << "file name is: " << filename << endl;
-
-    // Declarations
-    std::vector<unsigned char> image; //the raw pixels
-    unsigned width, height;
-
     // Reading Image
     unsigned error = lodepng::decode(image, width, height, filename);
 
@@ -63,38 +57,28 @@ vector<unsigned char> getRGB(string filename)
     {
         std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
     }
-
-    return image;
 }
 
-void loadCharacters(unsigned char *chars)
+void loadCharacters(unsigned char chars[CHARACTER_COUNT][CHARACTER_SIZE])
 {
     string base = "characters/";
     string files[] = {"@", "%", "#", "*", "+", "=", "-", ":", ".", "space"};
     string extension = ".png";
 
-    vector<unsigned char> out;
+    int numOfFiles = sizeof(files) / sizeof(files[0]);
 
-    string buffer = "";
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < numOfFiles; i++)
     {
-        auto rc = getRGB(base + files[i] + extension);
-        if (!rc.size())
+        vector<unsigned char> out;
+        unsigned width, height;
+        getRGB(base + files[i] + extension, out, width, height);
+        int size = out.size();
+        for (int j = 0, k = 0; j < size; j += CHARACTER_PIXEL_SIZE + 1, k += CHARACTER_PIXEL_SIZE)
         {
-            cout << "Failed" << endl;
-        }
-        else
-        {
-            buffer += "{";
-            buffer.push_back(rc[0]);
-            buffer += "'";
-            for (int j = 1; j < rc.size(); j++)
-            {
-                buffer += ",'";
-                buffer.push_back(rc[j]);
-                buffer += "'";
-            }
-            buffer += "}\n";
+            //this could be reversed, right now give RGB
+            chars[i][k] = out[j];
+            chars[i][k + 1] = out[j + 1];
+            chars[i][k + 2] = out[j + 2];
         }
     }
 }
