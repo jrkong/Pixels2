@@ -9,16 +9,17 @@ using namespace std;
 void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned desiredHeight, unsigned desiredWidth, unsigned *scaleX, unsigned *scaleY)
 {
 
-    if (imageWidth < desiredWidth)
+    float originalRatio = imageWidth / imageHeight;
+    if (originalRatio < 0)
     {
-        // *scaleX = 1;
-        // *scaleY = 1;
-        desiredHeight = imageHeight;
-        desiredWidth = imageWidth;
+        *scaleY = int(floor(imageWidth / 180));
+        *scaleX = int(*scaleY / 2);
     }
-    desiredHeight = (imageWidth / (float)imageHeight) * desiredWidth;
-    *scaleX = ceil((imageWidth * 4) / (float)desiredWidth);
-    *scaleY = ceil((imageHeight * 7) / (float)desiredHeight);
+    else
+    {
+        *scaleX = int(floor(imageHeight / 256));
+        *scaleY = int(*scaleX * 2);
+    }
 }
 
 // image has to be 'image size + 1' or the last row won't be processed
