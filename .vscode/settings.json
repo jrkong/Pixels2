@@ -1,6 +1,6 @@
 {
     "code-runner.executorMap": {
-        "cpp": "g++ -g -fopenmp $workspaceRoot/main.cpp $workspaceRoot/loadpng.cpp -o $workspaceRoot/a.out && $workspaceRoot/a.out",
+        "cpp": "make -C $workspaceRoot && $workspaceRoot/a.out",
     },
     "files.associations": {
         "Jenkinsfile*": "jenkins",
