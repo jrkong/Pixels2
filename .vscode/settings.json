@@ -6,6 +6,9 @@
         "Jenkinsfile*": "jenkins",
         "Dockerfile*": "dockerfile",
         "chrono": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "iostream": "cpp",
+        "iosfwd": "cpp",
+        "ostream": "cpp"
     }
 }
