@@ -77,23 +77,22 @@ int main(int argc, const char * argv[]) {
 
 
 // Getting a single Luminocity out of RGBA set. Using standard formula (0.2126*R + 0.7152*G + 0.0722*B)
-std::vector<int> MakeBW(std::vector<unsigned char> image, int width, int height, int newWidth, int newHeight){
-    std::vector<int> bwImage;
+std::vector<int> MakeBW(std::vector<unsigned char> image, int width, int height, int newWidth, int newHeight) {
+	std::vector<int> bwImage;
 	int diff = width - newWidth;
-    
+
 	int iter = 0;
-    for(int i=0; i<newHeight; i++){
+	for (int i = 0; i < newHeight; i++) {
 		for (int j = 0; j < newWidth; j++) {
 			bwImage.push_back(
 				(int)(0.2126 * (int)image.at(iter)) + (0.7152 * (int)image.at(iter + 1)) + (0.0722 * (int)image.at(iter + 2))
 			);
 			iter += 4;
 		}
-		iter += diff;
-    }
-    return bwImage;
+		iter += (diff*4);
+	}
+	return bwImage;
 }
-
 
 
 // Cropping an Image so that width is multiple of 4 and height of 7
