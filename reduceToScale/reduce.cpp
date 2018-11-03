@@ -1,4 +1,5 @@
 #include <math.h>
+#include <omp.h>
 
 #include "../util/util.h"
 #include "reduce.h"
@@ -6,30 +7,31 @@
 using namespace std;
 
 // scales[0] = width, scales[1] = height
-void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned desiredHeight, unsigned desiredWidth, unsigned *scaleX, unsigned *scaleY)
+void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned &scaleX, unsigned &scaleY)
 {
 
     float originalRatio = imageWidth / imageHeight;
     if (originalRatio < 0)
     {
-        *scaleY = int(floor(imageWidth / 180));
-        *scaleX = int(*scaleY / 2);
+        scaleY = int(ceil(imageWidth / float(180)));
+        scaleX = int(scaleY / float(2));
     }
     else
     {
-        *scaleX = int(floor(imageHeight / 256));
-        *scaleY = int(*scaleX * 2);
+        scaleX = int(ceil(imageHeight / float(256)));
+        scaleY = int(scaleX * float(2));
     }
 }
 
 // image has to be 'image size + 1' or the last row won't be processed
-void imageToTextScaledNaive(const vector<unsigned char> &image, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, char *output, int size, int pixelSize)
+void imageToTextScaledNaive(const unsigned char *image, int size, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, unsigned char *output, int pixelSize)
 {
     int singleRow = imageWidth * pixelSize;
-    // offset by the number of rows * scaleY (the number of shrunken columns) and look back to calculate average luminosity.
-    // the step size the same as the offset.
-    // #pragma omp parallel for
-    for (int currentRow = singleRow * scaleY; currentRow < image.size(); currentRow += singleRow * scaleY)
+// offset by the number of rows * scaleY (the number of shrunken columns) and look back to calculate average luminosity.
+// the step size the same as the offset.
+// #pragma omp parallel for
+#pragma omp parallel for
+    for (int currentRow = singleRow * scaleY; currentRow < size; currentRow += singleRow * scaleY)
     {
         // iterate over the entire row vertically collecting row and column data
         for (int partialWidth = 0; partialWidth < imageWidth; partialWidth += scaleX)
@@ -52,9 +54,5 @@ void imageToTextScaledNaive(const vector<unsigned char> &image, unsigned imageWi
             int index = (currentRow / (singleRow * scaleY) - 1) * (imageWidth / (scaleX)) + partialWidth / scaleX;
             output[index] = getLumCharacter(sum / (scaleX * scaleY));
         }
-    }
-    for (int i = (imageWidth / scaleX) - 1; i < size; i += imageWidth / scaleX)
-    {
-        output[i] = '\n';
     }
 }

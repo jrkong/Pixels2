@@ -2,5 +2,5 @@
 
 #include <vector>
 
-void imageToTextScaledNaive(const std::vector<unsigned char> &image, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, char *output, int size, int pixelSize);
-void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned desiredHeight, unsigned desiredWidth, unsigned *scaleX, unsigned *scaleY);
+void imageToTextScaledNaive(const unsigned char *image, int size, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, unsigned char *output, int pixelSize);
+void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned &scaleX, unsigned &scaleY);

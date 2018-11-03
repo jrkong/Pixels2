@@ -45,7 +45,7 @@ char getLumCharacter(int lum)
 
 int calcLum(const unsigned char *pixels)
 {
-    return (0.2126 * (int)pixels[0]) + (0.7152 * (int)pixels[1]) + (0.0722 * (int)pixels[2]);
+    return (0.2126 * (int)pixels[2]) + (0.7152 * (int)pixels[1]) + (0.0722 * (int)pixels[0]);
 }
 
 void getRGB(string filename, vector<unsigned char> &image, unsigned &width, unsigned &height)
