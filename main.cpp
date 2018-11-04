@@ -28,10 +28,11 @@ void reportTime(const char *msg, steady_clock::duration span)
 
 int main(int argc, const char *argv[])
 {
-	int font = cv::FONT_HERSHEY_PLAIN;
-	float fontScale = 0.2;
-	int fontThickness = 1;
+	const char *font = "Monospace";
 	auto fontColor = cv::Scalar(0, 0, 0);
+	int fontScale = 6;
+
+	const char *windowName = "cam";
 
 	VideoCapture stream1(0); //0 is the id of video device.0 if you have only one camera.
 
@@ -51,9 +52,18 @@ int main(int argc, const char *argv[])
 	unsigned char *whiteImage = new unsigned char[imageSize];
 
 	unsigned scaleX, scaleY;
-	getScalingFactors(width, height, scaleX, scaleY);
+	// getScalingFactors(width, height, scaleX, scaleY);
+
+	// since we are using monspace font, there is no need for dynamic scaling
+	scaleX = 4;
+	scaleY = 5;
+
 	int sizeOfOutput = (width / scaleX) * (height / scaleY);
 	unsigned char *output = new unsigned char[sizeOfOutput];
+
+	// create window
+	cv::namedWindow(windowName);
+
 	//unconditional loop
 	while (true)
 	{
@@ -68,7 +78,6 @@ int main(int argc, const char *argv[])
 		{
 			whiteImage[i] = whiteImage[i + 1] = whiteImage[i + 2] = (unsigned char)255;
 		}
-
 		// substitute the frame with a white canvas to draw on
 		cameraFrame.data = whiteImage;
 
@@ -79,16 +88,10 @@ int main(int argc, const char *argv[])
 		for (int i = 0, offset = 0; i < sizeOfOutput; i += width / scaleX, offset += 5)
 		{
 			cv::String out((char *)output + i, width / scaleX);
-			cv::putText(cameraFrame,
-						out,
-						cv::Point(0, offset), // Coordinates
-						font,				  // Font
-						fontScale,			  // Scale. 2.0 = 2x bigger
-						fontColor,			  // BGR Color
-						fontThickness);		  // Anti-alias (Optional)
+			cv::addText(cameraFrame, out, cv::Point(0, offset), font, fontScale, fontColor, cv::QT_FONT_LIGHT);
 		}
 
-		imshow("cam", cameraFrame);
+		imshow(windowName, cameraFrame);
 		if (waitKey(10) >= 0)
 			break;
 	}
