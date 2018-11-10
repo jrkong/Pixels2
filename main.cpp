@@ -11,8 +11,6 @@
 // #include "util/advisor-annotate.h"
 #include "reduceToScale/reduce.h"
 
-#define CHARACTER_SIZE 256
-
 // temporary variable to switch between capturing from webcam or from file
 #define CAMERA_OPTION 1
 #define VIDEO_OPTION 2
@@ -111,16 +109,6 @@ int main(int argc, const char *argv[])
 	VideoWriter outStream;
 	int width, height, fps;
 	int pixelSize = 3;
-
-	// if (CAPTURE_VIDEO)
-	// {
-	// 	source = "./180905_02_01.mp4";
-	// 	dest = "./test.mp4";
-	// }
-	// else
-	// {
-	// 	source = "0";
-	// }
 
 	if (!getVideoFeed(stream, source, width, height, fps))
 	{ //check if video device has been initialised
