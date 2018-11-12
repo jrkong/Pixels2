@@ -62,7 +62,7 @@ void getRGB(string filename, vector<unsigned char> &image, unsigned &width, unsi
 
 void loadCharacters(Mat *characters)
 {
-    string base = "characters/";
+    string base = "../characters/";
     string files[] = {"at", "percent", "hash", "star", "plus", "equals", "hyphen", "column", "dot", "space"};
     string extension = ".png";
 
@@ -70,5 +70,8 @@ void loadCharacters(Mat *characters)
     for (int i = 0; i < numOfFiles; i++)
     {
         characters[i] = imread(base + files[i] + extension);
+		if (!characters[i].data) {
+			throw("Unable to read template file");
+		}
     }
 }
