@@ -1,6 +1,6 @@
 {
     "code-runner.executorMap": {
-        "cpp": "make -C $workspaceRoot && $workspaceRoot/a.out",
+        "cpp": "make -C $workspaceRoot && $workspaceRoot/a.out 1 0",
     },
     "files.associations": {
         "Jenkinsfile*": "jenkins",

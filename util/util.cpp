@@ -7,6 +7,7 @@
 #include "util.h"
 
 using namespace std;
+using namespace cv;
 
 char getLumCharacterFancyPants(int lum)
 {
@@ -14,31 +15,31 @@ char getLumCharacterFancyPants(int lum)
     return map[int(floor(lum / (225 / (sizeof(map) - 1))))];
 }
 
-char getLumCharacter(int lum)
+int getLumCharacter(int lum)
 {
-    char character;
+    int character;
     // $@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,"^`'.  70 char set
     char map[]{'@', '%', '#', '*', '+', '=', '-', ':', '.', ' '};
     if (lum < 25)
-        character = map[0];
+        character = 0;
     else if (lum >= 25 && lum < 50)
-        character = map[1];
+        character = 1;
     else if (lum >= 50 && lum < 75)
-        character = map[2];
+        character = 2;
     else if (lum >= 75 && lum < 100)
-        character = map[3];
+        character = 3;
     else if (lum >= 100 && lum < 125)
-        character = map[4];
+        character = 4;
     else if (lum >= 125 && lum < 150)
-        character = map[5];
+        character = 5;
     else if (lum >= 150 && lum < 175)
-        character = map[6];
+        character = 6;
     else if (lum >= 175 && lum < 200)
-        character = map[7];
+        character = 7;
     else if (lum >= 200 && lum < 225)
-        character = map[8];
+        character = 8;
     else if (lum >= 225)
-        character = map[9];
+        character = 9;
 
     return character;
 }
@@ -59,26 +60,15 @@ void getRGB(string filename, vector<unsigned char> &image, unsigned &width, unsi
     }
 }
 
-void loadCharacters(unsigned char chars[CHARACTER_COUNT][CHARACTER_SIZE])
+void loadCharacters(Mat *characters)
 {
     string base = "characters/";
-    string files[] = {"@", "%", "#", "*", "+", "=", "-", ":", ".", "space"};
+    string files[] = {"at", "percent", "hash", "star", "plus", "equals", "hyphen", "column", "dot", "space"};
     string extension = ".png";
 
     int numOfFiles = sizeof(files) / sizeof(files[0]);
-
     for (int i = 0; i < numOfFiles; i++)
     {
-        vector<unsigned char> out;
-        unsigned width, height;
-        getRGB(base + files[i] + extension, out, width, height);
-        int size = out.size();
-        for (int j = 0, k = 0; j < size; j += CHARACTER_PIXEL_SIZE + 1, k += CHARACTER_PIXEL_SIZE)
-        {
-            //this could be reversed, right now give RGB
-            chars[i][k] = out[j];
-            chars[i][k + 1] = out[j + 1];
-            chars[i][k + 2] = out[j + 2];
-        }
+        characters[i] = imread(base + files[i] + extension);
     }
 }

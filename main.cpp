@@ -7,7 +7,7 @@
 #include <cstring>
 
 // #include "util/loadpng.h"
-// #include "util/util.h"
+#include "util/util.h"
 // #include "util/advisor-annotate.h"
 #include "reduceToScale/reduce.h"
 
@@ -44,6 +44,9 @@ bool getVideoFeed(VideoCapture &stream, const char *source, int &width, int &hei
 	{
 		return false;
 	}
+
+	// stream.set(CAP_PROP_FRAME_WIDTH, 1280);
+	// stream.set(CAP_PROP_FRAME_HEIGHT, 720);
 
 	width = stream.get(CAP_PROP_FRAME_WIDTH);
 	height = stream.get(CAP_PROP_FRAME_HEIGHT);
@@ -99,6 +102,10 @@ int main(int argc, const char *argv[])
 		dest = argv[3];
 	}
 
+	Mat *characters = new Mat[10];
+
+	loadCharacters(characters);
+
 	const char *font = "Monospace";
 	auto fontColor = cv::Scalar(0, 0, 0);
 	int fontScale = 6;
@@ -131,24 +138,23 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-	// stream1.set(CAP_PROP_FRAME_WIDTH, 1280);
-	// stream1.set(CAP_PROP_FRAME_HEIGHT, 720);
-
 	unsigned scaleX, scaleY;
 	// getScalingFactors(width, height, scaleX, scaleY);
 
 	// since we are using monspace font, there is no need for dynamic scaling
-	scaleX = 10;
-	scaleY = 10;
+	scaleX = 8;
+	scaleY = 16;
 
-	int sizeOfOutput = (width / scaleX) * (height / scaleY);
+	// int sizeOfOutput = (width / scaleX) * (height / scaleY) * pixelSize;
+	int sizeOfOutput = width * height * pixelSize;
+
 	unsigned char *output = new unsigned char[sizeOfOutput];
 	int imageSize = height * width * pixelSize;
 
 	unsigned char *whiteImage = new unsigned char[imageSize];
 
 	// create window
-	cv::namedWindow(windowName);
+	// cv::namedWindow(windowName);
 	//unconditional loop
 	while (true)
 	{
@@ -168,26 +174,34 @@ int main(int argc, const char *argv[])
 			flip(cameraFrame, cameraFrame, 1);
 		}
 
-		unsigned char *image = cameraFrame.data;
-// initialize a white image used to draw text on
-#pragma omp parallel for
-		for (int i = 0; i < imageSize; i += 3)
-		{
-			whiteImage[i] = whiteImage[i + 1] = whiteImage[i + 2] = (unsigned char)255;
-		}
-		// substitute the frame with a white canvas to draw on
-		cameraFrame.data = whiteImage;
+		// initialize a white image used to draw text on
+		// #pragma omp parallel for
+		// 		for (int i = 0; i < imageSize; i += 3)
+		// 		{
+		// 			whiteImage[i] = whiteImage[i + 1] = whiteImage[i + 2] = (unsigned char)255;
+		// 		}
+		// 		// substitute the frame with a white canvas to draw on
+		// 		cameraFrame.data = whiteImage;
 
+		auto n = cameraFrame.data;
 		// convert for ascii
-		imageToTextScaledNaive(image, width * height * pixelSize, width, scaleX, scaleY, output, pixelSize);
+		imageToTextScaledNaive(n, width * height * pixelSize, width, scaleX, scaleY, output, pixelSize, characters);
+		// for (int j = 0; j < 100; j++)
+		// {
+		// 	for (int i = 0; i < 10; i++)
+		// 	{
+		// 		memcpy(cameraFrame.data + 8 * 16 * 3 * i + j * width * pixelSize, characters[i].data, 8 * 16 * 3);
+		// 	}
+		// }
 
-		// draw text line by line, '\n' is not supported, so we need to break it up by separately drawing each line
-		for (int i = 0, offset = 0; i < sizeOfOutput; i += width / scaleX, offset += 5)
-		{
-			cv::String out((char *)output + i, width / scaleX);
-			cv::addText(cameraFrame, out, cv::Point(0, offset), font, fontScale, fontColor, cv::QT_FONT_LIGHT);
-		}
-
+		// // draw text line by line, '\n' is not supported, so we need to break it up by separately drawing each line
+		// for (int i = 0, offset = 0; i < sizeOfOutput; i += width / scaleX, offset += 5)
+		// {
+		// 	cv::String out((char *)output + i, width / scaleX);
+		// 	cv::addText(cameraFrame, out, cv::Point(0, offset), font, fontScale, fontColor, cv::QT_FONT_LIGHT);
+		// }
+		// unsigned char j = output[imageSize - 50000];
+		cameraFrame.data = output;
 		//write the video frame to the file
 		if (dest != nullptr)
 		{
