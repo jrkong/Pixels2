@@ -3,7 +3,7 @@
 This program is developed to allow cross platform conversion of media files into [ASCII art](https://en.wikipedia.org/wiki/ASCII_art).
 Examples of media resources that could serve as input:
 
-1. Images.
+1. Images (incoming).
 2. Live video stream.
 3. Pre-recorded video files.
 
