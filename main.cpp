@@ -6,7 +6,6 @@
 #include <omp.h>
 #include <cstring>
 
-// #include "util/loadpng.h"
 #include "util/util.h"
 // #include "util/advisor-annotate.h"
 #include "reduceToScale/reduce.h"
@@ -103,12 +102,15 @@ int main(int argc, const char *argv[])
 	}
 
 	Mat *characters = new Mat[10];
+	int numOfChars = loadCharacters(characters);
+	if (!numOfChars)
+	{
+		cout << "Failed to load character templates. Terminating!" << endl;
+		return -4;
+	}
 
-	loadCharacters(characters);
-
-	const char *font = "Monospace";
-	auto fontColor = cv::Scalar(0, 0, 0);
-	int fontScale = 6;
+	//number of characters has to be zero based
+	numOfChars--;
 
 	const char *windowName = "cam";
 
@@ -138,21 +140,14 @@ int main(int argc, const char *argv[])
 		}
 	}
 
-	unsigned scaleX, scaleY;
-	// getScalingFactors(width, height, scaleX, scaleY);
-
 	// since we are using monspace font, there is no need for dynamic scaling
-	scaleX = 8;
-	scaleY = 16;
+	unsigned scaleX = characters[0].cols, scaleY = characters[0].rows;
 
-	// int sizeOfOutput = (width / scaleX) * (height / scaleY) * pixelSize;
-	int sizeOfOutput = width * height * pixelSize;
-
-	unsigned char *output = new unsigned char[sizeOfOutput];
 	int imageSize = height * width * pixelSize;
+	unsigned char *output = new unsigned char[imageSize];
 
 	// create window
-	 cv::namedWindow(windowName, cv::WINDOW_AUTOSIZE);
+	cv::namedWindow(windowName, cv::WINDOW_AUTOSIZE);
 	//unconditional loop
 	while (true)
 	{
@@ -173,8 +168,7 @@ int main(int argc, const char *argv[])
 		}
 		auto n = cameraFrame.data;
 		// convert for ascii
-		imageToTextScaledNaive(n, width * height * pixelSize, width, scaleX, scaleY, output, pixelSize, characters);
-
+		imageToTextScaledNaive(n, imageSize, width, scaleX, scaleY, output, pixelSize, characters, numOfChars);
 		cameraFrame.data = output;
 		//write the video frame to the file
 		if (dest != nullptr)
@@ -184,6 +178,8 @@ int main(int argc, const char *argv[])
 
 		//show the frame in the created window
 		imshow(windowName, cameraFrame);
+
+		cameraFrame.data = n;
 
 		//Wait for for 10 milliseconds until any key is pressed.
 		//If the 'Esc' key is pressed, break the while loop.

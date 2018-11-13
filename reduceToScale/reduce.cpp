@@ -24,7 +24,7 @@ void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned &scal
 }
 
 // image has to be 'image size + 1' or the last row won't be processed
-void imageToTextScaledNaive(const unsigned char *image, int size, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, unsigned char *output, int pixelSize, const cv::Mat characters[])
+void imageToTextScaledNaive(const unsigned char *image, int size, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, unsigned char *output, int pixelSize, const cv::Mat characters[], int numOfChars)
 {
     int singleRow = imageWidth * pixelSize;
     // offset by the number of rows * scaleY (the number of shrunken columns) and look back to calculate average luminosity.
@@ -51,11 +51,11 @@ void imageToTextScaledNaive(const unsigned char *image, int size, unsigned image
                 }
             }
             // average out the sum and get the corresponding charater
+            int ind = getLumCharacterFancyPants(sum / (scaleX * scaleY), numOfChars);
+            const cv::Mat c = characters[ind];
             int h = (currentRow - (singleRow * scaleY));
-            const cv::Mat c = characters[getLumCharacter(sum / (scaleX * scaleY))];
-            int rowSize = c.cols * pixelSize;
-            int s = c.rows;
-            for (int i = 0; i < s; i++)
+            int rowSize = scaleX * pixelSize;
+            for (int i = 0; i < scaleY; i++)
             {
                 int left = h + i * singleRow + (partialWidth / scaleX) * rowSize;
                 memcpy(output + left, c.data + rowSize * i, rowSize);

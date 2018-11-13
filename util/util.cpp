@@ -3,16 +3,15 @@
 #include <iostream>
 #include <string>
 
-#include "loadpng.h"
 #include "util.h"
 
 using namespace std;
 using namespace cv;
 
-char getLumCharacterFancyPants(int lum)
+int getLumCharacterFancyPants(int lum, int size)
 {
-    char map[]{'@', '%', '#', '*', '+', '=', '-', ':', '.', ' '};
-    return map[int(floor(lum / (225 / (sizeof(map) - 1))))];
+    int rc = floor(lum / (225 / size));
+    return rc > size ? size : rc;
 }
 
 int getLumCharacter(int lum)
@@ -49,20 +48,9 @@ int calcLum(const unsigned char *pixels)
     return (0.2126 * (int)pixels[2]) + (0.7152 * (int)pixels[1]) + (0.0722 * (int)pixels[0]);
 }
 
-void getRGB(string filename, vector<unsigned char> &image, unsigned &width, unsigned &height)
+int loadCharacters(Mat *characters)
 {
-    // Reading Image
-    unsigned error = lodepng::decode(image, width, height, filename);
-
-    if (error)
-    {
-        std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
-    }
-}
-
-void loadCharacters(Mat *characters)
-{
-    string base = "../characters/";
+    string base = "./characters/";
     string files[] = {"at", "percent", "hash", "star", "plus", "equals", "hyphen", "column", "dot", "space"};
     string extension = ".png";
 
@@ -70,8 +58,10 @@ void loadCharacters(Mat *characters)
     for (int i = 0; i < numOfFiles; i++)
     {
         characters[i] = imread(base + files[i] + extension);
-		if (!characters[i].data) {
-			throw("Unable to read template file");
-		}
+        if (!characters[i].data)
+        {
+            return 0;
+        }
     }
+    return numOfFiles;
 }
