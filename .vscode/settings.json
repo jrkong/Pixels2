@@ -1,6 +1,6 @@
 {
     "code-runner.executorMap": {
-        "cpp": "make -C $workspaceRoot && $workspaceRoot/a.out",
+        "cpp": "make -C $workspaceRoot && $workspaceRoot/output/scaleImage 1 0",
     },
     "files.associations": {
         "Jenkinsfile*": "jenkins",
@@ -9,6 +9,7 @@
         "cmath": "cpp",
         "iostream": "cpp",
         "iosfwd": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "new": "cpp"
     }
 }

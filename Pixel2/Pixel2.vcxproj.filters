@@ -18,7 +18,13 @@
     <ClCompile Include="..\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\loadpng.cpp">
+    <ClCompile Include="..\reduceToScale\reduce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\util\util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\util\loadpng.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,11 +5,85 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch",
+            "name": "Camera without destination",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/a.out",
-            "args": [],
+            "program": "${workspaceFolder}/output/scaleImage",
+            "args": [
+                "1",
+                "0"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build pixels"
+        },
+        {
+            "name": "Video without destination",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/scaleImage",
+            "args": [
+                "2",
+                "./180905_02_01.mp4"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build pixels"
+        },
+        {
+            "name": "Video with destination",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/scaleImage",
+            "args": [
+                "2",
+                "./180905_02_01.mp4",
+                "./test.mp4"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build pixels"
+        },
+        {
+            "name": "Camera with destination",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/scaleImage",
+            "args": [
+                "1",
+                "0",
+                "./test.mp4"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

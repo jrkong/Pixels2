@@ -13,24 +13,24 @@ void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned &scal
     float originalRatio = imageWidth / imageHeight;
     if (originalRatio < 0)
     {
-        scaleY = int(ceil(imageWidth / float(180)));
-        scaleX = int(scaleY / float(2));
+        scaleY = int(ceil(imageWidth / float(imageHeight / 16)));
+        scaleX = int(scaleY / float(imageWidth / 8));
     }
     else
     {
-        scaleX = int(ceil(imageHeight / float(256)));
-        scaleY = int(scaleX * float(2));
+        scaleX = int(ceil(imageHeight / float(imageWidth / 16)));
+        scaleY = int(scaleX * float(imageHeight / 8));
     }
 }
 
 // image has to be 'image size + 1' or the last row won't be processed
-void imageToTextScaledNaive(const unsigned char *image, int size, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, unsigned char *output, int pixelSize)
+void imageToTextScaledNaive(const unsigned char *image, int size, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, unsigned char *output, int pixelSize, const cv::Mat characters[], int numOfChars)
 {
     int singleRow = imageWidth * pixelSize;
-// offset by the number of rows * scaleY (the number of shrunken columns) and look back to calculate average luminosity.
-// the step size the same as the offset.
-// #pragma omp parallel for
-#pragma omp parallel for
+    // offset by the number of rows * scaleY (the number of shrunken columns) and look back to calculate average luminosity.
+    // the step size the same as the offset.
+    // #pragma omp parallel for
+    // #pragma omp parallel for
     for (int currentRow = singleRow * scaleY; currentRow < size; currentRow += singleRow * scaleY)
     {
         // iterate over the entire row vertically collecting row and column data
@@ -51,8 +51,15 @@ void imageToTextScaledNaive(const unsigned char *image, int size, unsigned image
                 }
             }
             // average out the sum and get the corresponding charater
-            int index = (currentRow / (singleRow * scaleY) - 1) * (imageWidth / (scaleX)) + partialWidth / scaleX;
-            output[index] = getLumCharacter(sum / (scaleX * scaleY));
+            int ind = getLumCharacterFancyPants(sum / (scaleX * scaleY), numOfChars);
+            const cv::Mat c = characters[ind];
+            int h = (currentRow - (singleRow * scaleY));
+            int rowSize = scaleX * pixelSize;
+            for (int i = 0; i < scaleY; i++)
+            {
+                int left = h + i * singleRow + (partialWidth / scaleX) * rowSize;
+                memcpy(output + left, c.data + rowSize * i, rowSize);
+            }
         }
     }
 }
