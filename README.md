@@ -19,6 +19,6 @@ Once OpenCV is installed, just run `make` inside the project folder. The executa
 > Note: make assumes that there is OpenCV v4 installed. If this is not the case, you can update Makefile accordingly.
 
 ## Usage (Windows)
-Once OpenCV is installed, it is recommended to use Visual Studio because the config for it is already present. To run the program, you need to set `OPENCV_DIR` env variable. Refer to [link](https://docs.opencv.org/2.4/doc/tutorials/introduction/windows_install/windows_install.html#set-the-opencv-enviroment-variable-and-add-it-to-the-systems-path) for more information.
+Once OpenCV is installed, it is recommended to use Visual Studio because the config for it is already present. To run the program, you need to set `OPENCV_DIR` env variable. Refer to [link](https://docs.opencv.org/2.4/doc/tutorials/introduction/windows_install/windows_install.html#set-the-opencv-enviroment-variable-and-add-it-to-the-systems-path) for more information. Then add `%OPENCV_DIR%\bin` to your `PATH`.
 
 ## That's it!
