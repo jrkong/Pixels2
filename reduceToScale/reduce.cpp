@@ -27,10 +27,10 @@ void getScalingFactors(unsigned imageWidth, unsigned imageHeight, unsigned &scal
 void imageToTextScaledNaive(const unsigned char *image, int size, unsigned imageWidth, unsigned int scaleX, unsigned int scaleY, unsigned char *output, int pixelSize, const cv::Mat characters[], int numOfChars)
 {
     int singleRow = imageWidth * pixelSize;
-    // offset by the number of rows * scaleY (the number of shrunken columns) and look back to calculate average luminosity.
-    // the step size the same as the offset.
-    // #pragma omp parallel for
-    // #pragma omp parallel for
+// offset by the number of rows * scaleY (the number of shrunken columns) and look back to calculate average luminosity.
+// the step size the same as the offset.
+// #pragma omp parallel for
+#pragma omp parallel for
     for (int currentRow = singleRow * scaleY; currentRow < size; currentRow += singleRow * scaleY)
     {
         // iterate over the entire row vertically collecting row and column data

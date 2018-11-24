@@ -149,46 +149,60 @@ int main(int argc, const char *argv[])
 	// create window
 	cv::namedWindow(windowName, cv::WINDOW_AUTOSIZE);
 	//unconditional loop
-	while (true)
+	int c = 0;
+	int cc = 0;
+#pragma omp parallel
 	{
-		Mat cameraFrame;
-		bool isSuccess = stream.read(cameraFrame); // read a new frame from the video camera
-
-		//Breaking the while loop if frames cannot be read from the camera
-		if (isSuccess == false)
+#pragma omp single
+		while (true)
 		{
-			cout << "Video camera is disconnected" << endl;
-			break;
-		}
+			Mat cameraFrame;
+			bool isSuccess = stream.read(cameraFrame); // read a new frame from the video camera
 
-		// flip the frame if we are reading from camera
-		if (mode == CAMERA_OPTION)
-		{
-			flip(cameraFrame, cameraFrame, 1);
-		}
-		auto n = cameraFrame.data;
-		// convert for ascii
-		imageToTextScaledNaive(n, imageSize, width, scaleX, scaleY, output, pixelSize, characters, numOfChars);
-		cameraFrame.data = output;
-		//write the video frame to the file
-		if (dest != nullptr)
-		{
-			outStream.write(cameraFrame);
-		}
+			//Breaking the while loop if frames cannot be read from the camera
+			if (isSuccess == false)
+			{
+				cout << "Video camera is disconnected" << endl;
+				break;
+			}
 
-		//show the frame in the created window
-		imshow(windowName, cameraFrame);
+			// flip the frame if we are reading from camera
+			if (mode == CAMERA_OPTION)
+			{
+				flip(cameraFrame, cameraFrame, 1);
+			}
+			auto n = cameraFrame.data;
+			// convert for ascii
+			omp_set_num_threads(omp_get_thread_limit());
+			auto start = high_resolution_clock::now();
+			imageToTextScaledNaive(n, imageSize, width, scaleX, scaleY, output, pixelSize, characters, numOfChars);
+			if (c % 30 == 0)
+			{
+				auto micro = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
+				cout << "Frame processed in: " << micro << " micro-seconds\n\n";
+				c = 0;
+			}
+			cameraFrame.data = output;
+			//write the video frame to the file
+			if (dest != nullptr)
+			{
+				outStream.write(cameraFrame);
+			}
 
-		cameraFrame.data = n;
+			//show the frame in the created window
+			imshow(windowName, cameraFrame);
 
-		//Wait for for 10 milliseconds until any key is pressed.
-		//If the 'Esc' key is pressed, break the while loop.
-		//If any other key is pressed, continue the loop
-		//If any key is not pressed within 10 milliseconds, continue the loop
-		if (waitKey(10) == 27)
-		{
-			cout << "Esc key is pressed by the user. Stopping the video" << endl;
-			break;
+			cameraFrame.data = n;
+
+			//Wait for for 10 milliseconds until any key is pressed.
+			//If the 'Esc' key is pressed, break the while loop.
+			//If any other key is pressed, continue the loop
+			//If any key is not pressed within 10 milliseconds, continue the loop
+			if (waitKey(10) == 27)
+			{
+				cout << "Esc key is pressed by the user. Stopping the video" << endl;
+				break;
+			}
 		}
 	}
 
