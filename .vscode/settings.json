@@ -1,6 +1,6 @@
 {
     "code-runner.executorMap": {
-        "cpp": "make -C $workspaceRoot && $workspaceRoot/output/scaleImage 1 0",
+        "cpp": "make release -C $workspaceRoot && $workspaceRoot/output/scaleImage_release 2 MyVideo.mp4",
     },
     "files.associations": {
         "Jenkinsfile*": "jenkins",
