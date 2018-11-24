@@ -151,9 +151,8 @@ int main(int argc, const char *argv[])
 	//unconditional loop
 	int c = 0;
 	int cc = 0;
-#pragma omp parallel
+//#pragma omp single
 	{
-#pragma omp single
 		while (true)
 		{
 			Mat cameraFrame;
@@ -173,7 +172,6 @@ int main(int argc, const char *argv[])
 			}
 			auto n = cameraFrame.data;
 			// convert for ascii
-			omp_set_num_threads(omp_get_thread_limit());
 			auto start = high_resolution_clock::now();
 			imageToTextScaledNaive(n, imageSize, width, scaleX, scaleY, output, pixelSize, characters, numOfChars);
 			if (c % 30 == 0)

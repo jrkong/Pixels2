@@ -30,7 +30,7 @@ void imageToTextScaledNaive(const unsigned char *image, int size, unsigned image
 // offset by the number of rows * scaleY (the number of shrunken columns) and look back to calculate average luminosity.
 // the step size the same as the offset.
 // #pragma omp parallel for
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int currentRow = singleRow * scaleY; currentRow < size; currentRow += singleRow * scaleY)
     {
         // iterate over the entire row vertically collecting row and column data
